@@ -5,7 +5,7 @@ import time
 from quixstreams import Application
 
 API_URL = "https://api.wmata.com/Bus.svc/json/jBusPositions"
-API_KEY = "55f55cb715dc46bd8d223465be45105b"
+API_KEY = ""
 
 def fetch_data():
     response = requests.get(
