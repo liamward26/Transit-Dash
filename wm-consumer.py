@@ -4,23 +4,23 @@ from quixstreams import Application
 import pandas as pd
 import duckdb
 
-TOPIC = "bus_positions"   
+TOPIC = "bus_positions" #kafka topic to subscribe to 
 
 def process_message(message):
     value = message.value()
 
-    if not value:
+    if not value: #error handling if message empty 
         logging.warning("Received empty message, skipping")
         return
     try:
-        data = json.loads(value.decode())
+        data = json.loads(value.decode()) #decode consumer json message 
     except Exception as e:
         logging.error(f"Could not parse message JSON: {e}")
         return
 
-    df = pd.DataFrame(data["BusPositions"])
+    df = pd.DataFrame(data["BusPositions"]) #create pandas dataframe from json data
     
-    try:
+    try: #connect to duckdb and create bus positions table with given columns
         with duckdb.connect("bus_positions.duckdb") as con:
             con.execute("""
                 CREATE TABLE IF NOT EXISTS bus_positions (
@@ -38,15 +38,16 @@ def process_message(message):
                     TripEndTime TEXT,
                     BlockNumber TEXT)
             """)
-            con.register("df_view", df)
+            con.register("df_view", df) #register pandas dataframe in duckdb
+            #insert data into duckdb table from view dataframe 
             con.execute("INSERT INTO bus_positions BY NAME SELECT * FROM df_view")
             logging.info(f"Inserted {len(df)} rows")
-    except Exception as e:
+    except Exception as e: #handles errors with data insertion or table creation 
         logging.error(f"DuckDB insert error: {e}")
 
 
 def main():
-    app = Application(
+    app = Application( #create quixstreams consumer application 
         broker_address="localhost:19092", 
         consumer_group="wmata-consumer",
         auto_offset_reset="earliest",
@@ -54,20 +55,21 @@ def main():
     )
 
     consumer = app.get_consumer()
-    consumer.subscribe([TOPIC])
+    consumer.subscribe([TOPIC]) #subscribe to kafka topic
 
     logging.info(f"Consuming from topic: {TOPIC}")
 
     while True:
         msg = consumer.poll(timeout=1.0)
 
-        if msg is None:
+        if msg is None: #continue looping if no messages 
             continue
 
         if msg.error():
             logging.error(f"Kafka error: {msg.error()}")
             continue
 
+        #process message if it exists and no errors 
         process_message(msg)
         consumer.commit(msg)
 
