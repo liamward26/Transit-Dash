@@ -1,0 +1,10 @@
+quixstreams
+pandas
+duckdb
+logging
+requests
+streamlit
+streamlit_autorefresh
+plotly
+dash
+tabulate
