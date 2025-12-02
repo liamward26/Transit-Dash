@@ -21,7 +21,7 @@ def process_message(message):
     df = pd.DataFrame(data["BusPositions"]) #create pandas dataframe from json data
     
     try: #connect to duckdb and create bus positions table with given columns
-        with duckdb.connect("bus_positions.duckdb") as con:
+        with duckdb.connect("bus_positions.duckdb") as con: #closes connection outside of loop
             con.execute("""
                 CREATE TABLE IF NOT EXISTS bus_positions (
                     VehicleID INT,
