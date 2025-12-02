@@ -57,7 +57,7 @@ if df.empty: #if no data in dataframe yet
 else:
     #Give number of buses currently active
     total_unique_buses = df["VehicleID"].nunique()
-    st.metric(label="Total Active Buses", value=total_unique_buses)
+    st.text(f"Total Active Buses: {total_unique_buses}")
 
     #Create dropdown to select bus route to see
     route_options = sorted(df["RouteID"].dropna().unique())
